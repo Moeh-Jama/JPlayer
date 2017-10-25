@@ -1,13 +1,17 @@
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.BoxLayout;
+import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -17,18 +21,28 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 public class attemptMP3 extends JFrame {
 
+	
+	//JFileChooser chooser = new JFileChooser();
+	
+	
 	static String Path = ".\\MusicFolder\\";
-	static String currentSong = "bib.mp3";
+	static String currentSong = "";
 	static ArrayList<String> accessibleSongs = new ArrayList<String>();
 	final JFXPanel fxPanel = new JFXPanel();
-	Media hit = new Media(new File(Path+currentSong).toURI().toString());
-	MediaPlayer mediaPlayer = new MediaPlayer(hit);
+	//static MediaPlayer mediaPlayer;
+	static MediaPlayer[] media = new MediaPlayer[1];
+	static ArrayList<MediaPlayer> mediaLib = new ArrayList<MediaPlayer>();
 	public static void main(String[] args) throws IOException  {
 		// TODO Auto-generated method stub
 		
 		String filePath = ".\\MusicFolder\\";
 		final File folder = new File(filePath);
 		listFilesForFolder(folder);
+		for(String i: accessibleSongs)
+		{
+			System.out.println(i);
+		}
+		currentSong = accessibleSongs.get(0);
 		new attemptMP3();
 	}
 	
@@ -43,7 +57,7 @@ public class attemptMP3 extends JFrame {
 			else {
 				//Prints out file name.
 				if(fileEntry.getName().endsWith(".mp3")) {
-					System.out.println(fileEntry.getName());
+					//System.out.println(fileEntry.getName());
 					accessibleSongs.add(fileEntry.getName());
 				}
 				
@@ -58,34 +72,78 @@ public class attemptMP3 extends JFrame {
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JPanel thePanel = new JPanel();
+		thePanel.setLayout(new BoxLayout(thePanel, BoxLayout.Y_AXIS));
+		
 		JButton btn1 = new JButton("Play");
+		btn1.setAlignmentX(Component.CENTER_ALIGNMENT);
 		ListenForButton lBtn1 = new ListenForButton();
 		btn1.addActionListener(lBtn1);
 		thePanel.add(btn1);
 		JButton btn2 = new JButton("Pause");
+		btn2.setAlignmentX(Component.CENTER_ALIGNMENT);
 		ListenForButton2 lBtn2 = new ListenForButton2();
 		btn2.addActionListener(lBtn2);
 		thePanel.add(btn2);
 		
-		JLabel j1 = new JLabel(accessibleSongs.get(0));
-		j1.add(thePanel);
-		JTextField txA = new JTextField(accessibleSongs.get(0), 500);
-		thePanel.add(txA);
+		JButton btn3 = new JButton("Change Song");
+		btn2.setAlignmentX(Component.CENTER_ALIGNMENT);
+		ListenForButton3 lBtn3 = new ListenForButton3();
+		btn3.addActionListener(lBtn3);
+		thePanel.add(btn3);
+		
+		JTextArea ta = new JTextArea();
+		ta.setAlignmentX(Component.CENTER_ALIGNMENT);
+		for(String i: accessibleSongs)
+		{
+			ta.append(i+"\n");
+		}
+		thePanel.add(ta);
+		/*
+		 * GroupLayout layout = new GroupLayout(thePanel);
+		thePanel.setLayout(layout);
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
+		 */
 		
 		this.add(thePanel);
 		this.setVisible(true);
 	}
 	
-	
-	
-	
+	public static void playSong()
+	{
+		Media hit = new Media(new File(Path+currentSong).toURI().toString());
+		MediaPlayer mediaPlayer = new MediaPlayer(hit);
+		media[0] = mediaPlayer;
+		media[0].play();
+	}
+	public static void changeSong() {
+		Media hit = new Media(new File(Path+currentSong).toURI().toString());
+		MediaPlayer mediaPlayer = new MediaPlayer(hit);
+		if(media[0]!= null)
+		{
+			media[0].stop();
+		}
+		media[0] = mediaPlayer;
+		media[0].play();
+	}
+	public static void resume()
+	{
+		media[0].play();
+	}
 	private class ListenForButton implements ActionListener{
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			// TODO Auto-generated method stub
-			
-			mediaPlayer.play();
+			if(media[0] == null)
+			{
+				System.out.println("TRUE");
+				playSong();
+			}
+			else {
+				System.out.println("Resume");
+				resume();
+			}
 		}
 		
 	}
@@ -95,7 +153,40 @@ public class attemptMP3 extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			// TODO Auto-generated method stub
-			mediaPlayer.pause();
+			media[0].pause();
+		}
+		
+	}
+	private class ListenForButton3 implements ActionListener{
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			String choice ="";
+			System.out.println("Current Song is: "+currentSong);
+			do {
+				System.out.println("GO");
+				choice= JOptionPane.showInputDialog("Enter Song Choice");
+			}while(checkIfInLibrary(choice)==false);
+			currentSong = choice;
+			changeSong();
+			System.out.println("Current Song is: "+currentSong);
+			
+		}
+
+		private boolean checkIfInLibrary(String choice) {
+			// TODO Auto-generated method stub
+			boolean found = false;
+			for(String i: accessibleSongs)
+			{
+				System.out.println(choice + " " + i);
+				if(i.equals(choice))
+				{
+					found = true;
+				}
+			}
+			System.out.println(found);
+			return found;
 		}
 		
 	}
