@@ -4,17 +4,22 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.media.Media;
@@ -27,6 +32,7 @@ public class attemptMP3 extends JFrame {
 	
 	static String Path = ".\\MusicFolder\\";
 	static String currentSong = "";
+	static double setVolume = 0.1;
 	static ArrayList<String> accessibleSongs = new ArrayList<String>();
 	final JFXPanel fxPanel = new JFXPanel();
 	//static MediaPlayer mediaPlayer;
@@ -85,26 +91,47 @@ public class attemptMP3 extends JFrame {
 		btn2.addActionListener(lBtn2);
 		thePanel.add(btn2);
 		
-		JButton btn3 = new JButton("Change Song");
-		btn2.setAlignmentX(Component.CENTER_ALIGNMENT);
-		ListenForButton3 lBtn3 = new ListenForButton3();
-		btn3.addActionListener(lBtn3);
-		thePanel.add(btn3);
 		
-		JTextArea ta = new JTextArea();
-		ta.setAlignmentX(Component.CENTER_ALIGNMENT);
+		//ComboBox
+		String s = "";
 		for(String i: accessibleSongs)
 		{
-			ta.append(i+"\n");
+			s+=i+"%";
 		}
-		thePanel.add(ta);
-		/*
-		 * GroupLayout layout = new GroupLayout(thePanel);
-		thePanel.setLayout(layout);
-		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
-		 */
+		System.out.println("-----------------------");
+		String[] musicList = s.split("%");
 		
+		//System.out.println(s.split(" "));
+		for(int i =0; i< musicList.length; i++)
+		{
+			System.out.println(musicList[i]);
+		}
+		//TODO add function that updates musicList and SongList to current
+		//Library List.
+		JComboBox songList = new JComboBox(musicList);
+		songList.setSize(200, 300);
+		songList.setSelectedIndex(4);
+		ListenForCombo lsongList = new ListenForCombo();
+		songList.addActionListener(lsongList);
+		thePanel.add(songList);
+		
+		JLabel vol = new JLabel("VOLUME");
+		thePanel.add(vol);
+		
+		int FPS_MIN = 0;
+		int FPS_MAX = 10;
+		int FPS_INIT = 5;    //initial frames per second
+
+		JSlider volume = new JSlider(JSlider.HORIZONTAL,FPS_MIN, FPS_MAX, FPS_INIT);
+		ListenForVolume lVolume = new ListenForVolume();
+		volume.addChangeListener( lVolume);
+		
+		/*volume.setMajorTickSpacing(10);
+		volume.setMinorTickSpacing(1);
+		volume.setPaintTicks(true);
+		volume.setPaintLabels(true);*/
+		
+		thePanel.add(volume);
 		this.add(thePanel);
 		this.setVisible(true);
 	}
@@ -115,6 +142,7 @@ public class attemptMP3 extends JFrame {
 		MediaPlayer mediaPlayer = new MediaPlayer(hit);
 		media[0] = mediaPlayer;
 		media[0].play();
+		media[0].setVolume(setVolume);
 	}
 	public static void changeSong() {
 		Media hit = new Media(new File(Path+currentSong).toURI().toString());
@@ -126,9 +154,13 @@ public class attemptMP3 extends JFrame {
 		media[0] = mediaPlayer;
 		media[0].play();
 	}
-	public static void resume()
+	public static void resume() throws InterruptedException
 	{
+		media[0].setVolume(0.1);
 		media[0].play();
+		TimeUnit.SECONDS.sleep(2);
+		media[0].setVolume(1);
+		System.out.println(media[0].getVolume());
 	}
 	private class ListenForButton implements ActionListener{
 
@@ -142,7 +174,12 @@ public class attemptMP3 extends JFrame {
 			}
 			else {
 				System.out.println("Resume");
-				resume();
+				try {
+					resume();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		
@@ -157,38 +194,36 @@ public class attemptMP3 extends JFrame {
 		}
 		
 	}
-	private class ListenForButton3 implements ActionListener{
+	
+	private class ListenForCombo implements ActionListener{
 
 		@Override
-		public void actionPerformed(ActionEvent arg0) {
+		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-			String choice ="";
-			System.out.println("Current Song is: "+currentSong);
-			do {
-				System.out.println("GO");
-				choice= JOptionPane.showInputDialog("Enter Song Choice");
-			}while(checkIfInLibrary(choice)==false);
-			currentSong = choice;
+			JComboBox cb = (JComboBox)e.getSource();
+	        String songName = (String)cb.getSelectedItem();
+	        currentSong = songName;
+			System.out.println("OUR E IS: "+songName);
 			changeSong();
-			System.out.println("Current Song is: "+currentSong);
-			
-		}
-
-		private boolean checkIfInLibrary(String choice) {
-			// TODO Auto-generated method stub
-			boolean found = false;
-			for(String i: accessibleSongs)
-			{
-				System.out.println(choice + " " + i);
-				if(i.equals(choice))
-				{
-					found = true;
-				}
-			}
-			System.out.println(found);
-			return found;
 		}
 		
 	}
 	
+	private class ListenForVolume implements ChangeListener{
+
+		@Override
+		public void stateChanged(ChangeEvent e) {
+			// TODO Auto-generated method stub
+			JSlider cb = (JSlider)e.getSource();
+			int s = cb.getValue();
+			System.out.println("Volume is: "+s);
+			double t = s;
+			double time  = (t/10);
+			System.out.println(time);
+			setVolume = time;
+			setVolume = s;
+			media[0].setVolume(time);
+		}
+		
+	}
 }
