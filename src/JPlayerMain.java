@@ -27,7 +27,7 @@ import javax.swing.event.ChangeListener;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-public class attemptMP3 extends JFrame {
+public class JPlayerMain extends JFrame {
 
 	
 	//JFileChooser chooser = new JFileChooser();
@@ -53,7 +53,7 @@ public class attemptMP3 extends JFrame {
 			System.out.println(i);
 		}
 		currentSong = accessibleSongs.get(0);
-		new attemptMP3();
+		new JPlayerMain();
 	}
 	
 	public static void listFilesForFolder(final File folder) {
@@ -102,7 +102,7 @@ public class attemptMP3 extends JFrame {
 		return musicList;
 	}
 	
-	public attemptMP3() throws IOException {
+	public JPlayerMain() throws IOException {
 		this.setTitle("JAMA MP3");
 		this.setSize(1200, 600);
 		this.setLocationRelativeTo(null);
