@@ -13,7 +13,9 @@ public class Main {
 		new JPlayerGUI();
 	}
 	private static void createLibrary(String Path) {
+		System.out.println(Path);
 		File musicFolder = new File(Path);
+		
 		for(File files: musicFolder.listFiles()) {
 			Song song = new Song();
 			song.setTitle(getCleanedName(files.getName()));

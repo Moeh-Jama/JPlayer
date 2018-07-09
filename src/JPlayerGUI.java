@@ -1,5 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -8,6 +9,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -32,42 +34,51 @@ public class JPlayerGUI extends JFrame{
 	
 	private static JPanel images = new JPanel();
 	private static ProfileImage imageHolder;// = new ProfileImage();
-	
+	private static JLabel songName = new JLabel("Null");
 	public JPlayerGUI() {
 		//Get the library.
 		library = Main.returnLibrary();
 		
 		frame.setTitle("JPlayer"+songTitle);	//Have it change so that the current song is shown
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(585,  500);
+		frame.setSize(700,  700);
 		JPanel mainPanel = new JPanel(new BorderLayout());
-		JPanel panel = new JPanel();
-		
+		JPanel panel = new JPanel(new BorderLayout());
+		JPanel panel_top = new JPanel();
+		JPanel panel_bot = new JPanel();
 		//Functionalities
 		JComboBox<?> songList = new JComboBox<Object>(makeMusicList());
 		songList.setSelectedIndex(0);
 		ListenForSelection Lsong = new ListenForSelection();
 		songList.addActionListener(Lsong);
-		panel.add(songList);
+		//panel.add(songList);
 		
 		//Buttons
 		JButton Play = new JButton("PLAY");
 		ListenForControl Pcontrols = new ListenForControl("Play");
 		Play.addActionListener(Pcontrols);
-		panel.add(Play);
+		//panel.add(Play);
 		JButton Pause = new JButton("Pause");
 		ListenForControl P2controls = new ListenForControl("Pause");
 		Pause.addActionListener(P2controls);
-		panel.add(Pause);
+		//panel.add(Pause);
 		JButton Next = new JButton("Next");
 		ListenForControl Ncontrols = new ListenForControl("Next");
 		Next.addActionListener(Ncontrols);
-		panel.add(Next);
+		//panel.add(Next);
 		JButton Back = new JButton("Back");
 		ListenForControl Bcontrols = new ListenForControl("Back");
 		Back.addActionListener(Bcontrols);
-		panel.add(Back);
+		//panel.add(Back);
 		
+		
+		panel_top.add(songList);
+		panel_top.add(Play);
+		panel_top.add(Pause);
+		panel_top.add(Next);
+		panel_top.add(Back);
+		
+		panel.add(panel_top, BorderLayout.NORTH);
 		//Song Duration
 		int start_index = 0;
 		int end_index = 100;
@@ -76,7 +87,7 @@ public class JPlayerGUI extends JFrame{
 		ListenForDuration lForDuration = new ListenForDuration();
 		song_duration.addMouseListener(lForDuration);
 		//song_duration.addChangeListener(lForDuration);
-		panel.add(song_duration);
+		//panel.add(song_duration);
 		
 		//Song volume
 		int Lo_Volume = 0;
@@ -92,13 +103,22 @@ public class JPlayerGUI extends JFrame{
 		volume.setPaintTicks(true);
 		volume.setPaintLabels(true);
 		
-		panel.add(volume);
+		//panel.add(volume);
+		panel_bot.add(song_duration);
+		panel_bot.add(volume);
+		panel.add(panel_bot, BorderLayout.SOUTH);
+		Font  f1  = new Font(Font.SERIF, Font.PLAIN,  35);
+		songName.setFont(f1);
+		//panel.add(songName);
+		
 		setUpImage();
 		JPanel other = new JPanel();
 		other.add(images);
 		panel.setPreferredSize(new Dimension(500, 150));
 		other.setPreferredSize(new Dimension(500, 300));
 		mainPanel.add(panel, BorderLayout.NORTH);
+		songName.setBorder(new EmptyBorder(30, 80,30,30));
+		mainPanel.add(songName, BorderLayout.CENTER);
 		mainPanel.add(other, BorderLayout.SOUTH);
 		//this.add(panel);
 		frame.add(mainPanel);
@@ -113,9 +133,57 @@ public class JPlayerGUI extends JFrame{
 		images.add(imageHolder);
 	}
 	private void changeTitle(String cSong) {
-		songTitle = cSong;
-		this.setTitle("JPlayer: "+songTitle);
+		//find song.
+		if(media[0] !=null)
+			media[0].pause();
+		String songeTitle = "";
+		boolean isCurrentSongPlaying = false;
+		for(Song i : library) {
+			
+			if(i.getTitle().equals(cSong)) {
+				//songTitle
+				if(cSong.equals(songTitle)) {
+					isCurrentSongPlaying = true;
+				}
+				else {
+					currentSong = i.getPath().toString();
+					String[] arr = currentSong.split("\\\\");
+					songeTitle = arr[arr.length-1].split(".mp3")[0];
+					songTitle = cSong;
+				}
+			}
+		}
+		if(!isCurrentSongPlaying) {
+			this.setTitle("JPlayer: "+songTitle);
+			changeSelection();
+			playCurrentSong(0);
+			
+			songName.setText(songeTitle);
+			
+			frame.repaint();
+		}
+		else {
+			System.out.println("Same song");
+			playCurrentSong(1);
+		}
 	}
+	
+	
+	private void changeSelection() {
+		
+	}
+	private void playCurrentSong(int n) {
+		if(n == 1) {
+			media[0].play();
+		}
+		else {
+			Media hit = new Media(new File(currentSong).toURI().toString());
+			MediaPlayer mediaPlayer = new MediaPlayer(hit);
+			media[0] = mediaPlayer;
+			media[0].play();
+		}
+	}
+	
 	private  String[] makeMusicList() {
 		String s = "";
 		for(Song i: library)
@@ -157,6 +225,7 @@ public class JPlayerGUI extends JFrame{
 			String selectedSong = (String) g.getSelectedItem();
 			String songToPlay = getSong(selectedSong);
 			changeTitle(selectedSong);
+			System.out.println("Changed song to: "+selectedSong);
 		}
 		
 	}
@@ -170,6 +239,7 @@ public class JPlayerGUI extends JFrame{
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
+
 			switch(currentAction) {
 			case "Play":{
 				//Play song or Resume
@@ -178,13 +248,10 @@ public class JPlayerGUI extends JFrame{
 				if(currentSong.equals("")) {
 					currentSong = library.get(0).getPath();
 					changeTitle(library.get(0).getTitle());
-					Media hit = new Media(new File(currentSong).toURI().toString());
-					MediaPlayer mediaPlayer = new MediaPlayer(hit);
-					media[0] = mediaPlayer;
-					media[0].play();
 				}
 				else {
 					//else resume song
+					System.out.println("resuming");
 					media[0].play();
 				}
 				break;
@@ -200,23 +267,11 @@ public class JPlayerGUI extends JFrame{
 				if(currentIndex == library.size()-1) {
 					currentSong = library.get(0).getPath();
 					changeTitle(library.get(0).getTitle());
-					Media hit = new Media(new File(currentSong).toURI().toString());
-					MediaPlayer mediaPlayer = new MediaPlayer(hit);
-					media[0].stop();
-					media[0] = mediaPlayer;
-					media[0].play();
 					frame.repaint();
 					
 				}else {
 					currentSong = library.get(currentIndex+1).getPath();
 					changeTitle(library.get(currentIndex+1).getTitle());
-					Media hit = new Media(new File(currentSong).toURI().toString());
-					MediaPlayer mediaPlayer = new MediaPlayer(hit);
-					if(media[0]!=null) {
-						media[0].stop();
-					}
-					media[0] = mediaPlayer;
-					media[0].play();
 					frame.repaint();
 				}
 				break;
@@ -227,22 +282,10 @@ public class JPlayerGUI extends JFrame{
 				if(currentIndex == 0) {
 					currentSong = library.get(library.size()-1).getPath();
 					changeTitle(library.get(library.size()-1).getTitle());
-					Media hit = new Media(new File(currentSong).toURI().toString());
-					MediaPlayer mediaPlayer = new MediaPlayer(hit);
-					if(media[0]!=null) {
-						media[0].stop();
-					}
-					media[0] = mediaPlayer;
-					media[0].play();
 					frame.repaint();
 				}else {
 					currentSong = library.get(currentIndex-1).getPath();
 					changeTitle(library.get(currentIndex-1).getTitle());
-					Media hit = new Media(new File(currentSong).toURI().toString());
-					MediaPlayer mediaPlayer = new MediaPlayer(hit);
-					media[0].stop();
-					media[0] = mediaPlayer;
-					media[0].play();
 					frame.repaint();
 				}
 				break;
@@ -299,13 +342,17 @@ public class JPlayerGUI extends JFrame{
 			// TODO Auto-generated method stub
 			System.out.println("RELEASED: "+e.getX()+" - "+e.getY());
 				//JSlider cb = (JSlider) event.getSource();
-				double currentTimeStamp = media[0].getBalance();
-				System.out.println("TIME: "+currentTimeStamp);
-				double sliderValue = e.getX();
-				double something  = (sliderValue%100);
-				System.out.println("something: "+something);
-				//double proper_time_interval = media[0].getStopTime().toSeconds() * (something);
-				media[0].seek(media[0].getStopTime().seconds(something));
+				//double sliderValue = e.getX();
+				JSlider cb = (JSlider) e.getSource();
+				double sliderValue = cb.getValue(); //in percentage
+				double end_time = media[0].getStopTime().toSeconds();
+				double current_time = media[0].getCurrentTime().toSeconds();
+				System.out.println(current_time+" - "+end_time);
+				sliderValue /= 100;
+				System.out.println(sliderValue);
+				media[0].seek(media[0].getStopTime().seconds((sliderValue) * end_time));
+				
+				System.out.println(frame.getComponent(0).getName());
 		}
 		
 	}

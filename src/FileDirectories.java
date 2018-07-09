@@ -10,11 +10,13 @@ public class FileDirectories {
 	public static String getMusicFolderPath() {
 		String Path = "";
 		File origin = new File("");
+		String during_development_src = "";
 		int i =0;
-		while(i<=2) {
-			String currentFolder = origin.getAbsolutePath();
+		while(i<=1) {
+			String currentFolder = origin.getAbsolutePath()+during_development_src;
 			//Check if MusicFolder is in currentFolder, which is a Path.
 			String returnedPath = returnMusicFolderDirectory(currentFolder);
+			System.out.println("[0]"+returnedPath+" - "+currentFolder);
 			//If we don't return '-1', not found,then break the sequence and 
 			//Assign the Path.
 			if(!returnedPath.equals("-1")) {
